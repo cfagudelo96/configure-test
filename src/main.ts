@@ -1,4 +1,5 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import * as helmet from 'helmet';
 import * as rateLimit from 'express-rate-limit';
 
@@ -17,6 +18,8 @@ async function bootstrap() {
       max: MAX_REQUESTS_PER_WINDOW
     })
   );
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   await app.listen(3000);
 }
 bootstrap();

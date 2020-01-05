@@ -1,21 +1,16 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 
+import { ProductScreenshotQuery } from './product-screenshot-query';
+
 @Injectable()
 export class ProductsService {
-  private readonly puppeteerBrowserConfig: puppeteer.LaunchOptions = {
-    defaultViewport: {
-      width: 1280,
-      height: 720
-    }
-  };
-
   private readonly productUrl = 'http://code.fluidretail.net/configure-ui/stable/demos/desktop/index.html';
 
   private readonly productConfigureSelector = '.fc-configure-display';
 
-  async takeProductScreenshot(): Promise<Buffer> {
-    const browser = await puppeteer.launch(this.puppeteerBrowserConfig);
+  async takeProductScreenshot(productScreenshotQuery: ProductScreenshotQuery): Promise<Buffer> {
+    const browser = await puppeteer.launch({ defaultViewport: productScreenshotQuery.toViewport() });
     try {
       const page = await browser.newPage();
       await page.goto(this.productUrl);

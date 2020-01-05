@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as puppeteer from 'puppeteer';
 
 import { ProductsService } from './products.service';
+import { ProductScreenshotQuery } from './product-screenshot-query';
 
 describe('ProductsService', () => {
   let service: ProductsService;
@@ -34,16 +35,28 @@ describe('ProductsService', () => {
       jest.spyOn(puppeteer, 'launch').mockResolvedValue(mockedBrowser);
     });
 
-    it('should work correctly', async () => {
-      const result = await service.takeProductScreenshot();
+    it('should work correctly with a default configuration', async () => {
+      const defaultPuppeteerConfig = { defaultViewport: { width: 1280, height: 720 } };
+      const result = await service.takeProductScreenshot(new ProductScreenshotQuery());
       expect(result).toBe(screenshotResult);
+      expect(puppeteer.launch).toHaveBeenCalledWith(defaultPuppeteerConfig);
+      expect(mockedBrowser.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use the product screenshot query configuration', async () => {
+      const expectedPuppeteerConfig = { defaultViewport: { width: 800, height: 600 } };
+      const productScreenshotQuery = new ProductScreenshotQuery();
+      productScreenshotQuery.resolution = '800x600';
+      const result = await service.takeProductScreenshot(productScreenshotQuery);
+      expect(result).toBe(screenshotResult);
+      expect(puppeteer.launch).toHaveBeenCalledWith(expectedPuppeteerConfig);
       expect(mockedBrowser.close).toHaveBeenCalledTimes(1);
     });
 
     it('should fail gracefully', async () => {
       mockedPage.waitForSelector.mockRejectedValue(new Error());
       try {
-        await service.takeProductScreenshot();
+        await service.takeProductScreenshot(new ProductScreenshotQuery());
         fail();
       } catch (error) {
         expect(error.message).toEqual({
