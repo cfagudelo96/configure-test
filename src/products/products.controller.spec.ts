@@ -29,12 +29,12 @@ describe('Products Controller', () => {
 
     beforeEach(() => {
       expectedResult = new Buffer('Test');
-      jest.spyOn(productsService, 'takeProductScreenshot').mockResolvedValue(expectedResult);
+      jest.spyOn(productsService, 'getProductScreenshot').mockResolvedValue(expectedResult);
       mockedResponse = mocks.createResponse();
     });
 
     it('should get the screenshot of a product', async () => {
-      await productsController.takeProductScreenshot(new ProductScreenshotQuery(), mockedResponse);
+      await productsController.getProductScreenshot(new ProductScreenshotQuery(), mockedResponse);
       expect(mockedResponse.getHeader('Content-Transfer-Encoding')).toBe('binary');
       expect(mockedResponse.getHeader('Content-Type')).toBe('image/png');
       expect(mockedResponse._getData()).toBe(expectedResult);

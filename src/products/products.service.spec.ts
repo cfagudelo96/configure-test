@@ -19,7 +19,7 @@ describe('ProductsService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('takes a product screenshot', () => {
+  describe('gets a product screenshot', () => {
     let screenshotResult: Buffer;
     let mockedBrowser: any;
     let mockedPage: any;
@@ -35,9 +35,13 @@ describe('ProductsService', () => {
       jest.spyOn(puppeteer, 'launch').mockResolvedValue(mockedBrowser);
     });
 
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('should work correctly with a default configuration', async () => {
       const defaultPuppeteerConfig = { defaultViewport: { width: 1280, height: 720 } };
-      const result = await service.takeProductScreenshot(new ProductScreenshotQuery());
+      const result = await service.getProductScreenshot(new ProductScreenshotQuery());
       expect(result).toBe(screenshotResult);
       expect(puppeteer.launch).toHaveBeenCalledWith(defaultPuppeteerConfig);
       expect(mockedBrowser.close).toHaveBeenCalledTimes(1);
@@ -47,16 +51,23 @@ describe('ProductsService', () => {
       const expectedPuppeteerConfig = { defaultViewport: { width: 800, height: 600 } };
       const productScreenshotQuery = new ProductScreenshotQuery();
       productScreenshotQuery.resolution = '800x600';
-      const result = await service.takeProductScreenshot(productScreenshotQuery);
+      const result = await service.getProductScreenshot(productScreenshotQuery);
       expect(result).toBe(screenshotResult);
       expect(puppeteer.launch).toHaveBeenCalledWith(expectedPuppeteerConfig);
       expect(mockedBrowser.close).toHaveBeenCalledTimes(1);
     });
 
+    it('should use a cached screenshot if one is available', async () => {
+      await service.getProductScreenshot(new ProductScreenshotQuery());
+      const cachedResult = await service.getProductScreenshot(new ProductScreenshotQuery());
+      expect(cachedResult).toBe(screenshotResult);
+      expect(puppeteer.launch).toHaveBeenCalledTimes(1);
+    });
+
     it('should fail gracefully', async () => {
       mockedPage.waitForSelector.mockRejectedValue(new Error());
       try {
-        await service.takeProductScreenshot(new ProductScreenshotQuery());
+        await service.getProductScreenshot(new ProductScreenshotQuery());
         fail();
       } catch (error) {
         expect(error.message).toEqual({

@@ -1,12 +1,14 @@
 import { IsIn, IsOptional } from 'class-validator';
 
+import { ProductsService } from './products.service';
+
 interface PuppeteerViewport {
   width: number;
   height: number;
 }
 
 export class ProductScreenshotQuery {
-  @IsIn(['800x600', '1280x720', '1600x900', '1920x1080'])
+  @IsIn(ProductsService.VALID_SCREENSHOT_RESOLUTIONS)
   @IsOptional()
   resolution: string = '1280x720';
 
